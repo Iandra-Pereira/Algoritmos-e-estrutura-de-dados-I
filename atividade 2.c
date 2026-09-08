@@ -181,7 +181,6 @@ int main(void)
 
     while (!WindowShouldClose())
     {
-        /* Movimento */
 
         if (IsKeyDown(KEY_RIGHT))
             posJogador.x += 4;
