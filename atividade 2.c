@@ -196,8 +196,6 @@ int main(void)
             posJogador.y += 4;
 
 
-        /* Coleta das moedas */
-
         for (int i = 0; i < quantidadeMoedas; i++)
         {
             if (tentarColetar(
@@ -211,23 +209,15 @@ int main(void)
             }
         }
 
-
-        /* Atualiza as moedas */
-
         atualizarMoedas(
             moedas,
             quantidadeMoedas
         );
 
-
-        /* Desenho */
-
         BeginDrawing();
 
         ClearBackground(RAYWHITE);
 
-
-        /* Desenha as moedas */
 
         for (int i = 0; i < quantidadeMoedas; i++)
         {
@@ -244,16 +234,12 @@ int main(void)
         }
 
 
-        /* Desenha o jogador */
-
         DrawCircleV(
             posJogador,
             raioJogador,
             BLUE
         );
 
-
-        /* Informações */
 
         DrawText(
             TextFormat(
@@ -298,6 +284,4 @@ int main(void)
     CloseWindow();
 
     return 0;
-}
-
 }
