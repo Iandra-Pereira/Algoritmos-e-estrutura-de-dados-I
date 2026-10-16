@@ -5,6 +5,7 @@
 
 #define MAX_ELEMENTOS 10000
 
+// 1. ENUM: Estado da Busca e Tipo de Dado (Exigência do Trabalho)
 typedef enum {
     TIPO_INT,
     TIPO_FLOAT
@@ -18,17 +19,19 @@ typedef enum {
     NAO_ENCONTRADO
 } EstadoBusca;
 
+// 2. UNION: Suporte a tipos heterogêneos na mesma struct (Exigência do Trabalho)
 typedef union {
     int v_int;
     float v_float;
 } ValorUnion;
 
+// 3. STRUCT: Representação do Elemento no array
 typedef struct {
     ValorUnion valor;
     TipoDado tipo;
 } Elemento;
 
-
+// STRUCT: Controle e Estatísticas da Busca
 typedef struct {
     Elemento *dados;
     int quantidade;
@@ -40,18 +43,20 @@ typedef struct {
     long sondagens;
     int passo;
     EstadoBusca estado;
-    double tempoExecucao;
+    double tempoExecucao; // Tempo de execução real da busca em ms
 } Busca;
 
-
+// Gerador automático dos 4 arquivos de teste exigidos pelo trabalho (Teclas 1, 2, 3, 4)
 static void gerarArquivosDeTesteSeNaoExistirem(void) {
     FILE *fTest = fopen("dados_uniforme.txt", "r");
     if (fTest != NULL) { fclose(fTest); return; }
 
+    // 1. Uniforme
     FILE *f1 = fopen("dados_uniforme.txt", "w");
     for (int i = 1; i <= 500; i++) fprintf(f1, "%d ", i * 10);
     fclose(f1);
 
+    // 2. Não-Uniforme (crescimento irregular)
     FILE *f2 = fopen("dados_nao_uniforme.txt", "w");
     int val = 1;
     for (int i = 0; i < 500; i++) {
@@ -60,17 +65,20 @@ static void gerarArquivosDeTesteSeNaoExistirem(void) {
     }
     fclose(f2);
 
+    // 3. Com Repetições
     FILE *f3 = fopen("dados_repetidos.txt", "w");
     for (int i = 0; i < 500; i++) {
         fprintf(f3, "%d ", (i / 20) * 50);
     }
     fclose(f3);
 
+    // 4. Desordenado / Inverso (Cenário de Falha)
     FILE *f4 = fopen("dados_desordenados.txt", "w");
     for (int i = 500; i >= 1; i--) fprintf(f4, "%d ", i * 10);
     fclose(f4);
 }
 
+// Carregar dados a partir do arquivo escolhido com validação de ordenação
 static int carregarDados(const char *nomeArquivo, Elemento **dados, int *quantidade, char *mensagemErro) {
     FILE *arquivo = fopen(nomeArquivo, "r");
     if (arquivo == NULL) {
@@ -99,6 +107,7 @@ static int carregarDados(const char *nomeArquivo, Elemento **dados, int *quantid
         return 0;
     }
 
+    // Validação de ordenação em ordem crescente
     for (int i = 1; i < n; i++) {
         if (vetor[i].valor.v_int < vetor[i - 1].valor.v_int) {
             free(vetor);
@@ -131,24 +140,24 @@ static void iniciarBusca(Busca *b) {
     }
 }
 
-
+// Executa um passo do algoritmo contabilizando o tempo exato de processamento
 static void proximoPasso(Busca *b) {
     if (b->estado == ENCONTRADO || b->estado == NAO_ENCONTRADO) return;
 
     if (b->estado == AGUARDANDO) b->estado = PAUSADO;
 
-    double tInicio = GetTime(); 
+    double tInicio = GetTime(); // Início da medição de tempo real
 
     if (b->baixo > b->alto) {
         b->estado = NAO_ENCONTRADO;
-        b->tempoExecucao += (GetTime() - tInicio) * 1000.0;
+        b->tempoExecucao = (GetTime() - tInicio) * 1000.0;
         return;
     }
 
     b->comparacoes++;
     if (b->alvo < b->dados[b->baixo].valor.v_int || b->alvo > b->dados[b->alto].valor.v_int) {
         b->estado = NAO_ENCONTRADO;
-        b->tempoExecucao += (GetTime() - tInicio) * 1000.0;
+        b->tempoExecucao = (GetTime() - tInicio) * 1000.0;
         return;
     }
 
@@ -161,10 +170,11 @@ static void proximoPasso(Busca *b) {
         b->passo++;
         b->posicao = b->baixo;
         b->estado = (valorBaixo == b->alvo) ? ENCONTRADO : NAO_ENCONTRADO;
-        b->tempoExecucao += (GetTime() - tInicio) * 1000.0;
+        b->tempoExecucao = (GetTime() - tInicio) * 1000.0;
         return;
     }
 
+    // Cálculo da Interpolação Linear
     long long numerador = ((long long)b->alvo - valorBaixo) * (b->alto - b->baixo);
     long long denominador = (long long)valorAlto - valorBaixo;
     int pos = b->baixo + (int)(numerador / denominador);
@@ -180,19 +190,22 @@ static void proximoPasso(Busca *b) {
     b->comparacoes++;
     if (valorPos == b->alvo) {
         b->estado = ENCONTRADO;
-        b->tempoExecucao += (GetTime() - tInicio) * 1000.0;
+        b->tempoExecucao = (GetTime() - tInicio) * 1000.0;
         return;
     }
 
     b->comparacoes++;
-    if (valorPos < b->alvo) b->baixo = pos + 1;
-    else b->alto = pos - 1;
+    if (valorPos < b->alvo) {
+        b->baixo = pos + 1;
+    } else {
+        b->alto = pos - 1;
+    }
 
     if (b->baixo > b->alto) {
         b->estado = NAO_ENCONTRADO;
     }
 
-    b->tempoExecucao += (GetTime() - tInicio) * 1000.0;
+    b->tempoExecucao = (GetTime() - tInicio) * 1000.0;
 }
 
 static const char *nomeEstado(EstadoBusca estado) {
@@ -223,13 +236,14 @@ int main(void) {
     int indiceAlvo = 0;
     reiniciarBusca(&busca);
 
-    const int largura = 1100, altura = 700;
+    const int largura = 1100, altura = 660;
     InitWindow(largura, altura, "Busca por Interpolacao - AED I (UFERSA)");
     SetTargetFPS(60);
 
     double ultimoAvanco = GetTime();
 
     while (!WindowShouldClose()) {
+        // --- TROCA DE CENÁRIOS VIA TECLAS 1, 2, 3, 4 ---
         const char *novoArquivo = NULL;
         if (IsKeyPressed(KEY_ONE))   novoArquivo = "dados_uniforme.txt";
         if (IsKeyPressed(KEY_TWO))   novoArquivo = "dados_nao_uniforme.txt";
@@ -270,30 +284,32 @@ int main(void) {
             }
             if (IsKeyPressed(KEY_R)) reiniciarBusca(&busca);
 
-            // Avanço automático a cada 0.8s
             if (busca.estado == EXECUTANDO && GetTime() - ultimoAvanco >= 0.8) {
                 proximoPasso(&busca);
                 ultimoAvanco = GetTime();
             }
         }
 
+        // --- INTERFACE GRÁFICA ---
         BeginDrawing();
         ClearBackground((Color){246, 248, 251, 255});
 
         DrawText("ALGORITMO: BUSCA POR INTERPOLACAO", 30, 15, 22, (Color){28, 47, 74, 255});
-        DrawText(TextFormat("Cenario: %s | Elementos: %d | Alvo: %d", arquivoAtual, busca.quantidade, busca.alvo), 32, 42, 15, DARKGRAY);
 
-        DrawRectangleRounded((Rectangle){28, 65, 1044, 32}, 0.2f, 8, (Color){200, 212, 225, 255});
-        DrawText("CENARIOS: [1] Uniforme | [2] Nao-Uniforme | [3] Repetidos | [4] Desordenado (Erro)", 38, 73, 14, (Color){28, 47, 74, 255});
+        // Barra de Seleção de Cenários (Teclas 1, 2, 3, 4)
+        DrawRectangleRounded((Rectangle){28, 50, 1044, 32}, 0.2f, 8, (Color){200, 212, 225, 255});
+        DrawText("CENARIOS: [1] Uniforme | [2] Nao-Uniforme | [3] Repetidos | [4] Desordenado (Erro)", 38, 58, 14, (Color){28, 47, 74, 255});
 
-        DrawRectangleRounded((Rectangle){28, 102, 1044, 32}, 0.2f, 8, (Color){222, 230, 240, 255});
-        DrawText("CONTROLES: [S] Iniciar | [P] Pausar | [C] Continuar | [ESPAÇO] Passo a Passo | [R] Reiniciar | [SETAS] Alvo", 38, 110, 14, (Color){28, 47, 74, 255});
+        // Barra de Controles
+        DrawRectangleRounded((Rectangle){28, 88, 1044, 32}, 0.2f, 8, (Color){222, 230, 240, 255});
+        DrawText("CONTROLES: [S] Iniciar | [P] Pausar | [C] Continuar | [ESPAÇO] Passo a Passo | [R] Reiniciar | [SETAS] Alvo", 38, 96, 14, (Color){28, 47, 74, 255});
 
-        DrawRectangleRounded((Rectangle){28, 140, 1044, 180}, 0.08f, 8, (Color){232, 238, 245, 255});
+        // Desenho dos Elementos
+        DrawRectangleRounded((Rectangle){28, 126, 1044, 180}, 0.08f, 8, (Color){232, 238, 245, 255});
 
         if (mensagemErro[0] != '\0') {
-            DrawText(mensagemErro, 48, 210, 18, MAROON);
-            DrawText("Pressione [1], [2] ou [3] para carregar um cenario com dados validos.", 48, 240, 15, DARKGRAY);
+            DrawText(mensagemErro, 48, 195, 18, MAROON);
+            DrawText("Pressione [1], [2] ou [3] para carregar um cenario com dados validos.", 48, 225, 15, DARKGRAY);
         } else if (busca.quantidade > 0) {
             int inicio = busca.baixo;
             int fim = busca.alto;
@@ -318,7 +334,7 @@ int main(void) {
 
             for (int i = inicio; i <= fim; i++) {
                 int x = 60 + (i - inicio) * larguraCelula;
-                Rectangle rectBarra = (Rectangle){ (float)x, 195.0f, (float)larguraCelula - 4, 45.0f };
+                Rectangle rectBarra = (Rectangle){ (float)x, 180.0f, (float)larguraCelula - 4, 45.0f };
 
                 if (CheckCollisionPointRec(mousePos, rectBarra) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     busca.alvo = dados[i].valor.v_int;
@@ -334,35 +350,33 @@ int main(void) {
 
                 DrawRectangleRec(rectBarra, cor);
                 DrawRectangleLines((int)rectBarra.x, (int)rectBarra.y, (int)rectBarra.width, (int)rectBarra.height, (Color){100, 115, 130, 255});
-                DrawText(TextFormat("%d", dados[i].valor.v_int), x + 4, 208, 14, BLACK);
-                DrawText(TextFormat("[%d]", i), x + 4, 245, 11, DARKGRAY);
+                DrawText(TextFormat("%d", dados[i].valor.v_int), x + 4, 193, 14, BLACK);
+                DrawText(TextFormat("[%d]", i), x + 4, 230, 11, DARKGRAY);
             }
-            DrawText("Legenda: Azul (Limites baixo/alto) | Laranja (Posicao testada pos) | Verde (Encontrado)", 48, 290, 13, DARKGRAY);
+            DrawText("Legenda: Azul (Limites baixo/alto) | Laranja (Posicao testada pos) | Verde (Encontrado)", 48, 275, 13, DARKGRAY);
         }
 
-        // Painel Estatísticas
-        DrawRectangleRounded((Rectangle){28, 330, 1044, 295}, 0.08f, 8, (Color){232, 238, 245, 255});
-        DrawText("Estatisticas da Execucao Real", 48, 345, 20, (Color){28, 47, 74, 255});
+        // Estatísticas
+        DrawRectangleRounded((Rectangle){28, 315, 1044, 305}, 0.08f, 8, (Color){232, 238, 245, 255});
+        DrawText("Estatisticas da Execucao Real", 48, 330, 20, (Color){28, 47, 74, 255});
 
         if (mensagemErro[0] == '\0') {
-            DrawText(TextFormat("Arquivo de Entrada: %s", arquivoAtual), 50, 380, 18, DARKGRAY);
-            DrawText(TextFormat("Elementos (N): %d", busca.quantidade), 50, 410, 18, DARKGRAY);
-            DrawText(TextFormat("Alvo Selecionado: %d", busca.alvo), 400, 410, 18, (Color){28, 47, 74, 255});
-            DrawText(TextFormat("Comparacoes: %ld", busca.comparacoes), 50, 440, 18, DARKGRAY);
-            DrawText(TextFormat("Sondagens: %ld", busca.sondagens), 50, 470, 18, DARKGRAY);
-            DrawText(TextFormat("Passo Atual: %d", busca.passo), 400, 470, 18, DARKGRAY);
+            DrawText(TextFormat("Elementos (N): %d", busca.quantidade), 50, 370, 18, DARKGRAY);
+            DrawText(TextFormat("Alvo Selecionado: %d", busca.alvo), 400, 370, 18, (Color){28, 47, 74, 255});
+            DrawText(TextFormat("Comparacoes: %ld", busca.comparacoes), 50, 405, 18, DARKGRAY);
+            DrawText(TextFormat("Sondagens: %ld", busca.sondagens), 50, 440, 18, DARKGRAY);
+            DrawText(TextFormat("Passo Atual: %d", busca.passo), 400, 440, 18, DARKGRAY);
             
-            // EXIBIÇÃO ÚNICA E LIMPA DO TEMPO DE EXECUÇÃO
-            DrawText(TextFormat("Tempo de Execucao: %.6f ms (%.2f us)", busca.tempoExecucao, busca.tempoExecucao * 1000.0), 50, 505, 19, (Color){28, 47, 74, 255});
-            
-            DrawText(TextFormat("Estado da Aplicacao: %s", nomeEstado(busca.estado)), 50, 535, 18, DARKGRAY);
+            // Exibição do Tempo de Execução Real
+            DrawText(TextFormat("Tempo de Execucao: %.6f ms (%.2f us)", busca.tempoExecucao, busca.tempoExecucao * 1000.0), 50, 480, 19, (Color){28, 47, 74, 255});
+            DrawText(TextFormat("Estado da Aplicacao: %s", nomeEstado(busca.estado)), 50, 515, 18, DARKGRAY);
 
             if (busca.estado == ENCONTRADO) {
-                DrawText(TextFormat("RESULTADO: O valor %d foi ENCONTRADO no indice %d do vetor!", busca.alvo, busca.posicao), 50, 570, 18, (Color){32, 125, 70, 255});
+                DrawText(TextFormat("RESULTADO: O valor %d foi ENCONTRADO no indice %d do vetor!", busca.alvo, busca.posicao), 50, 555, 18, (Color){32, 125, 70, 255});
             } else if (busca.estado == NAO_ENCONTRADO) {
-                DrawText(TextFormat("RESULTADO: O valor %d NAO existe no conjunto de dados.", busca.alvo), 50, 570, 18, MAROON);
+                DrawText(TextFormat("RESULTADO: O valor %d NAO existe no conjunto de dados.", busca.alvo), 50, 555, 18, MAROON);
             } else {
-                DrawText("Aperte [ESPAÇO] para avançar passo a passo.", 50, 570, 16, (Color){28, 47, 74, 255});
+                DrawText("Aperte [ESPAÇO] para avançar passo a passo.", 50, 555, 16, (Color){28, 47, 74, 255});
             }
         }
 
@@ -370,6 +384,6 @@ int main(void) {
     }
 
     CloseWindow();
-    if (dados) free(dados);
+    free(dados);
     return 0;
 }
