@@ -30,5 +30,5 @@
 ---
 
 ## 📊 Arquivos do Projeto
-- `main.c`: Código-fonte completo com a lógica do algoritmo, geradores automáticos de arquivos, interface gráfica e cronômetro de precisão.
+- `projeto.c`: Código-fonte completo com a lógica do algoritmo, geradores automáticos de arquivos, interface gráfica e cronômetro de precisão.
 - `dados_*.txt`: Arquivos de entrada gerados automaticamente na primeira execução para preenchimento da tabela de experimentos do relatório técnico.
