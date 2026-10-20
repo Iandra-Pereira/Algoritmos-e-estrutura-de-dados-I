@@ -5,7 +5,7 @@
 
 #define MAX_ELEMENTOS 10000
 
-// 1. ENUM: Estado da Busca e Tipo de Dado (Exigência do Trabalho)
+// 1. ENUM: Estado da Busca e Tipo de Dado 
 typedef enum {
     TIPO_INT,
     TIPO_FLOAT
@@ -19,7 +19,7 @@ typedef enum {
     NAO_ENCONTRADO
 } EstadoBusca;
 
-// 2. UNION: Suporte a tipos heterogêneos na mesma struct (Exigência do Trabalho)
+// 2. UNION: Suporte a tipos heterogêneos na mesma struct 
 typedef union {
     int v_int;
     float v_float;
@@ -43,7 +43,7 @@ typedef struct {
     long sondagens;
     int passo;
     EstadoBusca estado;
-    double tempoExecucao; // Tempo de execução real da busca em ms
+    double tempoExecucao; 
 } Busca;
 
 // Gerador automático dos 4 arquivos de teste exigidos pelo trabalho (Teclas 1, 2, 3, 4)
@@ -146,7 +146,7 @@ static void proximoPasso(Busca *b) {
 
     if (b->estado == AGUARDANDO) b->estado = PAUSADO;
 
-    double tInicio = GetTime(); // Início da medição de tempo real
+    double tInicio = GetTime();
 
     if (b->baixo > b->alto) {
         b->estado = NAO_ENCONTRADO;
